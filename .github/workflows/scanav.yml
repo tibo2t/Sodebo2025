@@ -46,3 +46,10 @@ jobs:
           else
             echo "✅ Aucun malware détecté."
           fi
+
+      - name: Sauvegarder la liste des fichiers infectés en tant qu’artefact
+        uses: actions/upload-artifact@v4
+        if: always()  # Toujours sauvegarder l'artefact, même si le job échoue
+        with:
+          name: fichiers-infectés
+          path: infected_files.txt
