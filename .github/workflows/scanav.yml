@@ -1,0 +1,25 @@
+name: Scan with ClamAV
+
+on: [push, pull_request]
+
+jobs:
+  scan_with_clamav:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Vérifier le repo (checkout)
+        uses: actions/checkout@v4
+
+      - name: Installer ClamAV
+        run: sudo apt-get update && sudo apt-get install -y clamav clamav-daemon
+
+      - name: Mettre à jour la base de signatures
+        run: sudo freshclam
+
+      - name: Scanner le fichier avec ClamAV
+        id: scan
+        continue-on-error: true
+        run: clamscan --infected --remove --recursive LocalThreadHijacking.exe
+
+      - name: Vérifier si un malware a été détecté
+        if: steps.scan.outcome == 'failure'
+        run: echo "❌ Malware détecté dans LocalThreadHijacking.exe !" && exit 1
