@@ -26,13 +26,14 @@ jobs:
         continue-on-error: true
         run: |
           touch infected_files.txt
+          set +e  # Désactive l'arrêt automatique en cas d'erreur
+          
           find . -type f -name "*.exe" | while read file; do
-            clamscan --infected --remove "$file"
-            scan_exit_code=$?  # Capture le code de sortie de clamscan
-            
-            if [ $scan_exit_code -eq 1 ]; then
+            scan_result=$(clamscan --infected "$file")
+            if echo "$scan_result" | grep -q "FOUND"; then
               echo "❌ Fichier infecté détecté: $file"
               echo "$file" >> infected_files.txt
+              clamscan --remove "$file"  # Supprime après enregistrement
             fi
           done
 
@@ -41,7 +42,7 @@ jobs:
           if [ -s infected_files.txt ]; then
             echo "🚨 Malware détecté dans les fichiers suivants :"
             cat infected_files.txt
-            exit 1  # Échoue le job si au moins un fichier est infecté
+            exit 1  # Échoue le job si un malware est détecté
           else
             echo "✅ Aucun malware détecté."
           fi
