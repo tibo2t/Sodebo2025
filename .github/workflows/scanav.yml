@@ -13,7 +13,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y clamav clamav-daemon
 
       - name: Mettre à jour la base de signatures
-        run: sudo freshclam
+        run: sudo freshclam --stdout
 
       - name: Scanner le fichier avec ClamAV
         id: scan
