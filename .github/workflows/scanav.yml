@@ -12,8 +12,14 @@ jobs:
       - name: Installer ClamAV
         run: sudo apt-get update && sudo apt-get install -y clamav clamav-daemon
 
+      - name: Arrêter le service freshclam (si en cours d’exécution)
+        run: sudo systemctl stop clamav-freshclam || true
+
       - name: Mettre à jour la base de signatures
         run: sudo freshclam --stdout
+
+      - name: Démarrer le service freshclam (si en cours d’exécution)
+        run: sudo systemctl start clamav-freshclam || true
 
       - name: Scanner le fichier avec ClamAV
         id: scan
