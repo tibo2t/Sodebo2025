@@ -25,6 +25,7 @@ jobs:
         id: scan
         continue-on-error: true
         run: |
+          touch infected_files.txt
           find . -type f -name "*.exe" | while read file; do
             result=$(clamscan --infected --remove "$file")
             if echo "$result" | grep -q "FOUND"; then
@@ -34,8 +35,9 @@ jobs:
           done
 
       - name: Vérifier si un malware a été détecté
-        if: steps.scan.outcome == 'failure' || -s infected_files.txt
         run: |
-          echo "🚨 Malware détecté dans les fichiers suivants :"
-          cat infected_files.txt
-          exit 1
+          if [ -s infected_files.txt ]; then
+            echo "🚨 Malware détecté dans les fichiers suivants :"
+            cat infected_files.txt
+            exit 1
+          fi
