@@ -21,11 +21,21 @@ jobs:
       - name: Démarrer le service freshclam (si en cours d’exécution)
         run: sudo systemctl start clamav-freshclam || true
 
-      - name: Scanner le fichier avec ClamAV
+      - name: Scanner tous les fichiers .exe avec ClamAV
         id: scan
         continue-on-error: true
-        run: clamscan --infected --remove --recursive LocalThreadHijacking.exe
+        run: |
+          find . -type f -name "*.exe" | while read file; do
+            result=$(clamscan --infected --remove "$file")
+            if echo "$result" | grep -q "FOUND"; then
+              echo "❌ Fichier infecté détecté: $file"
+              echo "$file" >> infected_files.txt
+            fi
+          done
 
       - name: Vérifier si un malware a été détecté
-        if: steps.scan.outcome == 'failure'
-        run: echo "❌ Malware détecté dans LocalThreadHijacking.exe !" && exit 1
+        if: steps.scan.outcome == 'failure' || -s infected_files.txt
+        run: |
+          echo "🚨 Malware détecté dans les fichiers suivants :"
+          cat infected_files.txt
+          exit 1
